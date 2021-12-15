@@ -1,5 +1,6 @@
 package org.springframework.context;
 
+import com.trivadis.springselfwritten.BPlusPerformanceMessung;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -92,6 +93,9 @@ public class ApplicationContext {
                 if (field.isAnnotationPresent(Autowired.class)) {
                     String type = field.getType().getTypeName();
                     Object dependentBean = allBeans.get(type);
+                    if (type.equals("com.trivadis.springselfwritten.B")) {
+                        dependentBean = new BPlusPerformanceMessung();
+                    }
                     field.setAccessible(true);
                     field.set(bean, dependentBean);
                 }
