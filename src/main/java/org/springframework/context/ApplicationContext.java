@@ -1,12 +1,18 @@
 package org.springframework.context;
 
-import com.trivadis.springselfwritten.BPlusPerformanceMessung;
+import com.trivadis.springselfwritten.B;
+import com.trivadis.springselfwritten.PerformanceAspect;
+import net.sf.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.MethodProxy;
+import org.springframework.ProceedingJoinPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
 
@@ -94,7 +100,23 @@ public class ApplicationContext {
                     String type = field.getType().getTypeName();
                     Object dependentBean = allBeans.get(type);
                     if (type.equals("com.trivadis.springselfwritten.B")) {
-                        dependentBean = new BPlusPerformanceMessung();
+                        Enhancer enhancer = new Enhancer();
+                        enhancer.setSuperclass(B.class);
+                        enhancer.setCallback((MethodInterceptor) (o, method, objects, methodProxy) -> {
+                            new PerformanceAspect().performance(new ProceedingJoinPoint() {
+                                @Override
+                                public String call() {
+                                    try {
+                                        methodProxy.invokeSuper(o, objects);
+                                    } catch (Throwable e) {
+                                        e.printStackTrace();
+                                    }
+                                    return null;
+                                }
+                            });
+                            return null;
+                        });
+                        dependentBean = enhancer.create();
                     }
                     field.setAccessible(true);
                     field.set(bean, dependentBean);
