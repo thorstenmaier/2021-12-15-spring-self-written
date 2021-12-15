@@ -11,5 +11,10 @@ public class B {
 
     public void doIt() {
         System.out.println("B.doIt");
+        try {
+            Thread.sleep((long) (Math.random() * 2000));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
